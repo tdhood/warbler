@@ -122,7 +122,6 @@ def login():
 @app.post('/logout')
 def logout():
     """Handle logout of user and redirect to homepage."""
-    add_form_to_g()
 
     if g.csrf_form.validate_on_submit():
         do_logout()
@@ -360,8 +359,11 @@ def homepage():
     - logged in: 100 most recent messages of followed_users
     """
     if g.user:
+        following = [u.id for u in g.user.following]
+
         messages = (Message
                     .query
+                    .filter(Message.user_id == g.user.id or Message.user_id.in_(following))
                     .order_by(Message.timestamp.desc())
                     .limit(100)
                     .all())
