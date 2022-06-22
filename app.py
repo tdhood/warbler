@@ -56,8 +56,8 @@ def do_logout():
 def add_form_to_g():
     """when logged in, adds a CSRF form to Flask global."""
 
-    if CURR_USER_KEY in session:
-        g.csrf_form = CSRFProtectForm()
+    #if CURR_USER_KEY in session:
+    g.csrf_form = CSRFProtectForm()
 
 @app.route('/signup', methods=["GET", "POST"])
 def signup():
@@ -126,9 +126,9 @@ def logout():
     """Handle logout of user and redirect to homepage."""
 
     add_form_to_g()
-    form = g.csrf_form
+    csrf_form = g.csrf_form
 
-    if form.validate_on_submit():
+    if csrf_form.validate_on_submit():
         do_logout()
         return redirect('/')
 
@@ -164,6 +164,8 @@ def list_users():
 @app.get('/users/<int:user_id>')
 def show_user(user_id):
     """Show user profile."""
+    add_form_to_g()
+    csrf_form = g.csrf_form
 
     if not g.user:
         flash("Access unauthorized.", "danger")
@@ -171,7 +173,7 @@ def show_user(user_id):
 
     user = User.query.get_or_404(user_id)
 
-    return render_template('users/show.html', user=user)
+    return render_template('users/show.html', user=user, csrf_form=csrf_form)
 
 
 @app.get('/users/<int:user_id>/following')
@@ -328,7 +330,8 @@ def homepage():
     - anon users: no messages
     - logged in: 100 most recent messages of followed_users
     """
-
+    add_form_to_g()
+    csrf_form = g.csrf_form
     if g.user:
         messages = (Message
                     .query
@@ -336,10 +339,10 @@ def homepage():
                     .limit(100)
                     .all())
 
-        return render_template('home.html', messages=messages)
+        return render_template('home.html', messages=messages, csrf_form=csrf_form)
 
     else:
-        return render_template('home-anon.html')
+        return render_template('home-anon.html', csrf_form=csrf_form)
 
 
 ##############################################################################
