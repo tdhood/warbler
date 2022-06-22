@@ -54,6 +54,7 @@ def do_logout():
     if CURR_USER_KEY in session:
         del session[CURR_USER_KEY]
 
+@app.before_request
 def add_form_to_g():
     """ adds a CSRF form to Flask global."""
 
@@ -121,8 +122,9 @@ def login():
 @app.post('/logout')
 def logout():
     """Handle logout of user and redirect to homepage."""
+    add_form_to_g()
 
-    if csrf_form.validate_on_submit():
+    if g.csrf_form.validate_on_submit():
         do_logout()
         return redirect('/')
 
