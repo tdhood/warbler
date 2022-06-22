@@ -54,11 +54,13 @@ class User(db.Model):
 
     image_url = db.Column(
         db.Text,
+        nullable=False,
         default=DEFAULT_IMAGE_URL,
     )
 
     header_image_url = db.Column(
         db.Text,
+        nullable=False,
         default=DEFAULT_HEADER_IMAGE_URL,
     )
 
