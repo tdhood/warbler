@@ -55,7 +55,7 @@ def do_logout():
         del session[CURR_USER_KEY]
 
 def add_form_to_g():
-    """when logged in, adds a CSRF form to Flask global."""
+    """ adds a CSRF form to Flask global."""
 
     g.csrf_form = CSRFProtectForm()
 
