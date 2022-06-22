@@ -1,11 +1,12 @@
 import os
+import bcrypt
 from dotenv import load_dotenv
 
 from flask import Flask, render_template, request, flash, redirect, session, g
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 
-from forms import UserAddForm, LoginForm, MessageForm, CSRFProtectForm
+from forms import UserAddForm, LoginForm, MessageForm, CSRFProtectForm, UserEditForm
 from models import db, connect_db, User, Message
 
 load_dotenv()
@@ -56,7 +57,6 @@ def do_logout():
 def add_form_to_g():
     """when logged in, adds a CSRF form to Flask global."""
 
-    #if CURR_USER_KEY in session:
     g.csrf_form = CSRFProtectForm()
 
 @app.route('/signup', methods=["GET", "POST"])
@@ -103,9 +103,6 @@ def login():
 
     form = LoginForm()
 
-    add_form_to_g()
-    csrf_form = g.csrf_form
-
     if form.validate_on_submit():
         user = User.authenticate(
             form.username.data,
@@ -118,15 +115,12 @@ def login():
 
         flash("Invalid credentials.", 'danger')
 
-    return render_template('users/login.html', form=form, csrf_form=csrf_form)
+    return render_template('users/login.html', form=form)
 
 
 @app.post('/logout')
 def logout():
     """Handle logout of user and redirect to homepage."""
-
-    add_form_to_g()
-    csrf_form = g.csrf_form
 
     if csrf_form.validate_on_submit():
         do_logout()
@@ -146,9 +140,7 @@ def list_users():
 
     Can take a 'q' param in querystring to search by that username.
     """
-    add_form_to_g()
-    csrf_form = g.csrf_form
-    
+
     if not g.user:
         flash("Access unauthorized.", "danger")
         return redirect("/")
@@ -161,15 +153,12 @@ def list_users():
         users = User.query.filter(User.username.like(f"%{search}%")).all()
 
     return render_template('users/index.html', 
-                            users=users, 
-                            csrf_form=csrf_form)
+                            users=users)
 
 
 @app.get('/users/<int:user_id>')
 def show_user(user_id):
     """Show user profile."""
-    add_form_to_g()
-    csrf_form = g.csrf_form
 
     if not g.user:
         flash("Access unauthorized.", "danger")
@@ -177,14 +166,12 @@ def show_user(user_id):
 
     user = User.query.get_or_404(user_id)
 
-    return render_template('users/show.html', user=user, csrf_form=csrf_form)
+    return render_template('users/show.html', user=user)
 
 
 @app.get('/users/<int:user_id>/following')
 def show_following(user_id):
     """Show list of people this user is following."""
-    add_form_to_g()
-    csrf_form = g.csrf_form
 
     if not g.user:
         flash("Access unauthorized.", "danger")
@@ -192,15 +179,12 @@ def show_following(user_id):
 
     user = User.query.get_or_404(user_id)
     return render_template('users/following.html', 
-                            user=user, 
-                            csrf_form=csrf_form)
+                            user=user)
 
 
 @app.get('/users/<int:user_id>/followers')
 def show_followers(user_id):
     """Show list of followers of this user."""
-    add_form_to_g()
-    csrf_form = g.csrf_form
     
     if not g.user:
         flash("Access unauthorized.", "danger")
@@ -208,8 +192,7 @@ def show_followers(user_id):
 
     user = User.query.get_or_404(user_id)
     return render_template('users/followers.html', 
-                            user=user, 
-                            csrf_form=csrf_form)
+                            user=user)
 
 
 @app.post('/users/follow/<int:follow_id>')
@@ -252,7 +235,39 @@ def stop_following(follow_id):
 def profile():
     """Update profile for current user."""
 
-    # IMPLEMENT THIS
+    form = UserEditForm()
+
+    if form.validate_on_submit():
+        user = g.user
+        if User.authenticate(user.username, form.password.data):
+            user.username = form.username.data or user.username
+            user.email = form.email.data or user.email
+            user.image_url = form.image_url.data or user.image_url
+            user.header_image_url = form.header_image_url.data or user.header_image_url
+            user.bio = form.bio.data or user.bio
+            db.session.commit()
+
+            return redirect(f'/users/{user.id}')
+        else:
+            flash('Bad password.')
+            username = form.username.data
+            email = form.email.data
+            image_url = form.image_url.data
+            header_image_url = form.header_image_url.data
+            bio = form.bio.data
+            form = UserEditForm(username=username,
+                                email=email,
+                                image_url=image_url,
+                                header_image_url=header_image_url,
+                                bio=bio)
+            return render_template('users/edit.html', 
+                                form=form)
+            
+        
+    else:    
+        return render_template('users/edit.html', 
+                                form=form)
+
 
 
 @app.post('/users/delete')
@@ -342,8 +357,6 @@ def homepage():
     - anon users: no messages
     - logged in: 100 most recent messages of followed_users
     """
-    add_form_to_g()
-    csrf_form = g.csrf_form
     if g.user:
         messages = (Message
                     .query
@@ -351,10 +364,10 @@ def homepage():
                     .limit(100)
                     .all())
 
-        return render_template('home.html', messages=messages, csrf_form=csrf_form)
+        return render_template('home.html', messages=messages)
 
     else:
-        return render_template('home-anon.html', csrf_form=csrf_form)
+        return render_template('home-anon.html')
 
 
 ##############################################################################
