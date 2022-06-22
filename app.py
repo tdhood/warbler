@@ -5,11 +5,10 @@ from flask import Flask, render_template, request, flash, redirect, session, g
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 
-from forms import UserAddForm, LoginForm, MessageForm
+from forms import UserAddForm, LoginForm, MessageForm, CSRFProtectForm
 from models import db, connect_db, User, Message
 
 load_dotenv()
-
 CURR_USER_KEY = "curr_user"
 
 app = Flask(__name__)
@@ -54,6 +53,11 @@ def do_logout():
     if CURR_USER_KEY in session:
         del session[CURR_USER_KEY]
 
+def add_form_to_g():
+    """when logged in, adds a CSRF form to Flask global."""
+
+    if CURR_USER_KEY in session:
+        g.csrf_form = CSRFProtectForm()
 
 @app.route('/signup', methods=["GET", "POST"])
 def signup():
@@ -66,7 +70,7 @@ def signup():
     If the there already is a user with that username: flash message
     and re-present form.
     """
-
+   
     if CURR_USER_KEY in session:
         del session[CURR_USER_KEY]
     form = UserAddForm()
@@ -99,6 +103,9 @@ def login():
 
     form = LoginForm()
 
+    add_form_to_g()
+    csrf_form = g.csrf_form
+
     if form.validate_on_submit():
         user = User.authenticate(
             form.username.data,
@@ -111,14 +118,20 @@ def login():
 
         flash("Invalid credentials.", 'danger')
 
-    return render_template('users/login.html', form=form)
+    return render_template('users/login.html', form=form, csrf_form=csrf_form)
 
 
 @app.post('/logout')
 def logout():
     """Handle logout of user and redirect to homepage."""
 
+    add_form_to_g()
     form = g.csrf_form
+
+    if form.validate_on_submit():
+        do_logout()
+        return redirect('/')
+
 
     # IMPLEMENT THIS AND FIX BUG
     # DO NOT CHANGE METHOD ON ROUTE
