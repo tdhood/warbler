@@ -8,10 +8,10 @@ from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import or_
 from forms import (
-    UserAddForm, 
-    LoginForm, 
-    MessageForm, 
-    CSRFProtectForm, 
+    UserAddForm,
+    LoginForm,
+    MessageForm,
+    CSRFProtectForm,
     UserEditForm,
 )
 from models import (
@@ -55,7 +55,7 @@ def add_user_to_g():
         g.user = User.query.get(session[CURR_USER_KEY])
 
     else:
-        g.user = User.query.get(301)
+        g.user = None
 
 
 @app.before_request
@@ -389,9 +389,9 @@ def homepage():
         print(following)
         print(curr_user_id)
         messages = (
-            Message.query.filter(or_(
-                Message.user_id == g.user.id, Message.user_id.in_(following)
-            ))
+            Message.query.filter(
+                or_(Message.user_id == g.user.id, Message.user_id.in_(following))
+            )
             .order_by(Message.timestamp.desc())
             .limit(100)
             .all()
@@ -404,37 +404,57 @@ def homepage():
     else:
         return render_template("home-anon.html")
 
+
 ##############################################################################
 # Likes routes
 
-@app.post('/like')
-def add_like():
-    """Create a new like and add to DB """
-
-    # if g.user:
-    #     if not g.user:
-    #         flash("Access unauthorized.", "danger")
-    #         return redirect("/")
-
-    user_id = int(request.json['user_id'])
-    message_id = int(request.json['message_id'])
-
-    like = Like(message_id=message_id, user_id=user_id)
-    db.session.add(like)
-    user = g.user
-    db.session.commit()
-    
-    print(g.user.liked_messages)
-    return redirect('/')
 
 @app.get("/users/<int:user_id>/likes")
 def display_liked_messages(user_id):
-    """ Grabs all of the current users liked messages, and displays them"""
+    """Grabs all of the current users liked messages, and displays them"""
 
-    return render_template('/users/likes.html', user=g.user)
-        
+    return render_template("/users/likes.html", user=g.user)
 
-   
+
+@app.post("/like")
+def add_like():
+    """Create a new like and add to DB and redirect to homepage"""
+
+    if g.csrf_form.validate_on_submit():
+        if not g.user:
+            flash("Access unauthorized.", "danger")
+            return redirect("/")
+
+        print(request)
+        user_id = g.user.id
+        message_id = request.form["message_id"]
+
+        like = Like(message_id=message_id, user_id=user_id)
+        db.session.add(like)
+        user = g.user
+        db.session.commit()
+
+        return redirect("/")
+
+
+@app.post("/unlike")
+def remove_like():
+    """Remove like from DB and redirect to homepage"""
+
+    if g.csrf_form.validate_on_submit():
+        if not g.user:
+            flash("Access unauthorized.", "danger")
+            return redirect("/")
+
+        user_id = g.user.id
+        message_id = int(request.form["message_id"])
+
+        like = Like.query.get((user_id, message_id))
+        db.session.delete(like)
+        db.session.commit()
+
+        return redirect("/")
+
 
 ##############################################################################
 # Turn off all caching in Flask
@@ -451,6 +471,3 @@ def add_header(response):
     # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control
     response.cache_control.no_store = True
     return response
-
-
-

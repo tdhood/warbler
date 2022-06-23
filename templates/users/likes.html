@@ -16,7 +16,7 @@
                 <span class="text-muted">{{ msg.timestamp.strftime('%d %B %Y') }}</span>
                 <p>{{ msg.text }}</p>
                 {% if msg in g.user.liked_messages %}
-                <i class="far fa-star"></i>
+                <i class="fas fa-star"></i>
                 {% endif %}
             </div>
         </li>
