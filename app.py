@@ -55,7 +55,7 @@ def add_user_to_g():
         g.user = User.query.get(session[CURR_USER_KEY])
 
     else:
-        g.user = None
+        g.user = User.query.get(301)
 
 
 @app.before_request
@@ -416,15 +416,22 @@ def add_like():
     #         flash("Access unauthorized.", "danger")
     #         return redirect("/")
 
-    user_id = request.json['user_id']
-    message_id = request.json['message_id']  
+    user_id = int(request.json['user_id'])
+    message_id = int(request.json['message_id'])
 
     like = Like(message_id=message_id, user_id=user_id)
     db.session.add(like)
+    user = g.user
     db.session.commit()
-
-    print(like)
+    
+    print(g.user.liked_messages)
     return redirect('/')
+
+@app.get("/users/<int:user_id>/likes")
+def display_liked_messages(user_id):
+    """ Grabs all of the current users liked messages, and displays them"""
+
+    return render_template('/users/likes.html', user=g.user)
         
 
    

@@ -54,7 +54,8 @@
           <a href="/users/{{ msg.user.id }}">@{{ msg.user.username }}</a>
           <span class="text-muted">{{ msg.timestamp.strftime('%d %B %Y') }}</span>
           <p>{{ msg.text }}</p>
-            {% if msg in msg.users[0].likes %}
+  
+            {% if msg in g.user.liked_messages %}
             <i class="far fa-star"></i>
             {% endif %}
         </div>
