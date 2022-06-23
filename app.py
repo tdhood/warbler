@@ -7,7 +7,13 @@ from flask import Flask, render_template, request, flash, redirect, session, g
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import or_
-from forms import UserAddForm, LoginForm, MessageForm, CSRFProtectForm, UserEditForm
+from forms import (
+    UserAddForm, 
+    LoginForm, 
+    MessageForm, 
+    CSRFProtectForm, 
+    UserEditForm,
+)
 from models import (
     db,
     connect_db,
@@ -15,6 +21,7 @@ from models import (
     Message,
     DEFAULT_HEADER_IMAGE_URL,
     DEFAULT_IMAGE_URL,
+    Like,
 )
 
 load_dotenv()
@@ -399,6 +406,28 @@ def homepage():
 
 ##############################################################################
 # Likes routes
+
+@app.post('/like')
+def add_like():
+    """Create a new like and add to DB """
+
+    # if g.user:
+    #     if not g.user:
+    #         flash("Access unauthorized.", "danger")
+    #         return redirect("/")
+
+    user_id = request.json['user_id']
+    message_id = request.json['message_id']  
+
+    like = Like(message_id=message_id, user_id=user_id)
+    db.session.add(like)
+    db.session.commit()
+
+    print(like)
+    return redirect('/')
+        
+
+   
 
 ##############################################################################
 # Turn off all caching in Flask
