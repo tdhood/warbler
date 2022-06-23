@@ -1,3 +1,4 @@
+from operator import and_
 import os
 import bcrypt
 from dotenv import load_dotenv
@@ -5,7 +6,7 @@ from dotenv import load_dotenv
 from flask import Flask, render_template, request, flash, redirect, session, g
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
-
+from sqlalchemy import or_
 from forms import UserAddForm, LoginForm, MessageForm, CSRFProtectForm, UserEditForm
 from models import (
     db,
@@ -324,13 +325,13 @@ def add_message():
     form = MessageForm()
 
     if form.validate_on_submit():
-        msg = Message(text=form.text.data)
+        msg = Message(text=form.text.data, user_id=g.user.id)
         g.user.messages.append(msg)
         db.session.commit()
 
         return redirect(f"/users/{g.user.id}")
 
-    return render_template("messages/new.html", form=form)
+    return render_template("messages/create.html", form=form)
 
 
 @app.get("/messages/<int:message_id>")
@@ -377,15 +378,19 @@ def homepage():
     """
     if g.user:
         following = [u.id for u in g.user.following]
-
+        curr_user_id = g.user.id
+        print(following)
+        print(curr_user_id)
         messages = (
-            Message.query.filter(
-                Message.user_id == g.user.id or Message.user_id.in_(following)
-            )
+            Message.query.filter(or_(
+                Message.user_id == g.user.id, Message.user_id.in_(following)
+            ))
             .order_by(Message.timestamp.desc())
             .limit(100)
             .all()
         )
+        for message in messages:
+            print(message.user_id)
 
         return render_template("home.html", messages=messages)
 
