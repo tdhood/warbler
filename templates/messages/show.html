@@ -41,20 +41,19 @@
           <span class="text-muted">
             {{ message.timestamp.strftime('%d %B %Y') }}
           </span>
+          <!-- move to a class method -->
           {% if not message.user.id == g.user.id %}
           {% if message not in g.user.liked_messages %}
           <form method="POST" action="/like">
             {{ g.csrf_form.hidden_tag() }}
-            <input hidden="True" name="user_id" value="{{ g.user.id }}">
-            <input hidden="True" name="message_id" value="{{ message.id }}">
-            <button class="far fa-star"></button>
+            <input hidden name="message_id" value="{{ message.id }}">
+            <button class="starButton far fa-star"></button>
           </form>
           {% else %}
           <form method="POST" action="/unlike">
             {{ g.csrf_form.hidden_tag() }}
-            <input hidden="True" name="user_id" value="{{ g.user.id }}">
-            <input hidden="True" name="message_id" value="{{ message.id }}">
-            <button class="fas fa-star"></button>
+            <input hidden name="message_id" value="{{ message.id }}">
+            <button class="starButton fas fa-star"></button>
           </form>
           {% endif %}
           {% endif %}

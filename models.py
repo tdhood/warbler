@@ -82,7 +82,7 @@ class User(db.Model):
     liked_messages = db.relationship(
         'Message',
         secondary="likes",
-        backref="users",
+        backref="liked_by_users",
         )
 
     followers = db.relationship(
@@ -178,9 +178,11 @@ class Message(db.Model):
         nullable=False,
     )
 
+    like = db.relationship('Like', backref='liked_message')
+
 
 class Like(db.Model):
-    """Connection to a Like <-> Message"""
+    """Connection to a User <-> Message"""
 
     __tablename__= 'likes'
 
