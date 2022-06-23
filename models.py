@@ -172,6 +172,7 @@ class Message(db.Model):
         nullable=False,
     )
 
+# Need to add class for Like that links user to messages
 
 def connect_db(app):
     """Connect this database to provided Flask app.

@@ -397,6 +397,8 @@ def homepage():
     else:
         return render_template("home-anon.html")
 
+##############################################################################
+# Likes routes
 
 ##############################################################################
 # Turn off all caching in Flask
@@ -413,3 +415,6 @@ def add_header(response):
     # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control
     response.cache_control.no_store = True
     return response
+
+
+
