@@ -41,8 +41,8 @@
           <span class="text-muted">
             {{ message.timestamp.strftime('%d %B %Y') }}
           </span>
-          {% if not message.is_users_msg() %}
-          {% if not message.is_liked_msg() %}
+          {% if message.user_id != g.user.id %}
+          {% if message not in g.user.liked_messages%}
           <form method="POST" action="/like">
             {{ g.csrf_form.hidden_tag() }}
             <input hidden name="message_id" value="{{ message.id }}">
