@@ -36,6 +36,7 @@ app.config['WTF_CSRF_ENABLED'] = False
 
 class MessageBaseViewTestCase(TestCase):
     def setUp(self):
+        Message.query.delete()
         User.query.delete()
 
         u1 = User.signup("u1", "u1@email.com", "password", None)
@@ -62,7 +63,87 @@ class MessageAddViewTestCase(MessageBaseViewTestCase):
             # Now, that session setting is saved, so we can have
             # the rest of ours test
             resp = c.post("/messages/new", data={"text": "Hello"})
+            Message.query.filter_by(text="Hello").one()
+            followed_resp = c.post("/messages/new", 
+                                    data={"text": "Hello"}, 
+                                    follow_redirects=True)
 
             self.assertEqual(resp.status_code, 302)
+            self.assertIn(f'{self.u1_id}', resp.text)
+            self.assertIn('Hello', followed_resp.text)
+            self.assertEqual(len(Message.query.filter_by(text="Hello").all()),2)
+    
+    def test_add_message_not_logged_in(self):
+        with self.client as c:
 
-            Message.query.filter_by(text="Hello").one()
+            resp = c.post("/messages/new", data={"text": "Hello"})
+            followed_resp = c.post("/messages/new", 
+                                    data={"text": "Hello"}, 
+                                    follow_redirects=True)
+
+            self.assertEqual(resp.status_code, 302)
+            self.assertNotIn(f'{self.u1_id}', resp.text)
+            self.assertNotIn('Hello', followed_resp.text)
+            self.assertEqual(len(Message.query.filter_by(text="Hello").all()),0)
+
+    def test_add_message_not_correct_user(self):
+        with self.client as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = 301
+
+            resp = c.post("/messages/new", data={"text": "Hello"})
+            followed_resp = c.post("/messages/new", 
+                                    data={"text": "Hello"}, 
+                                    follow_redirects=True)
+
+            self.assertEqual(resp.status_code, 302)
+            self.assertNotIn(f'{self.u1_id}', resp.text)
+            self.assertNotIn('Hello', followed_resp.text)
+            self.assertEqual(len(Message.query.filter_by(text="Hello").all()),0)
+
+class MessageDeleteViewTestCase(MessageBaseViewTestCase):
+    def test_delete_message(self):
+        with self.client as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.u1_id
+            
+            self.assertEqual(
+                len(Message.query.filter_by(text="m1-text").all()),
+                1)
+
+            resp = c.post(f"/messages/{self.m1_id}/delete")
+
+            self.assertEqual(resp.status_code, 302)
+            self.assertEqual(
+                len(Message.query.filter_by(text="m1-text").all()),
+                0)
+
+    def test_delete_message_not_logged_in(self):
+        with self.client as c:
+            
+            self.assertEqual(
+                len(Message.query.filter_by(text="m1-text").all()),
+                1)
+
+            resp = c.post(f"/messages/{self.m1_id}/delete")
+
+            self.assertEqual(resp.status_code, 302)
+            self.assertEqual(
+                len(Message.query.filter_by(text="m1-text").all()),
+                1)
+
+    def test_delete_message_not_correct_user(self):
+        with self.client as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = 301
+            
+            self.assertEqual(
+                len(Message.query.filter_by(text="m1-text").all()),
+                1)
+
+            resp = c.post(f"/messages/{self.m1_id}/delete")
+
+            self.assertEqual(resp.status_code, 302)
+            self.assertEqual(
+                len(Message.query.filter_by(text="m1-text").all()),
+                1)
