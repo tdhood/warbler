@@ -429,9 +429,7 @@ def add_like():
         user_id = g.user.id
         message_id = request.form["message_id"]
 
-        # TODO: change relationship to move from like to user
         like = Like(message_id=message_id, user_id=user_id)
-        # g.user.liked_messages.append(like)
         db.session.add(like)
         db.session.commit()
 

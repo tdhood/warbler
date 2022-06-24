@@ -258,7 +258,7 @@ nav + .container {
 .starButton {
   position: absolute;
   top: 76%;
-  left: 11%;
+  right: 11%;
   background-color: rgba(0, 0, 0, 0);
   border: none;
   z-index: 1000;

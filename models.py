@@ -4,6 +4,7 @@ from datetime import datetime
 
 from flask_bcrypt import Bcrypt
 from flask_sqlalchemy import SQLAlchemy
+from app import g
 
 bcrypt = Bcrypt()
 db = SQLAlchemy()
@@ -78,12 +79,12 @@ class User(db.Model):
     )
 
     messages = db.relationship('Message', backref="user")
-
+    
     liked_messages = db.relationship(
         'Message',
         secondary="likes",
         backref="liked_by_users",
-        )
+    )
 
     followers = db.relationship(
         "User",
@@ -179,6 +180,16 @@ class Message(db.Model):
     )
 
     like = db.relationship('Like', backref='liked_message')
+
+    def is_users_msg(self):
+        """ Checks if the message is the current users message.
+            Returns true if so, false if not"""
+        return self.user.id == g.user.id
+
+    def is_liked_msg(self):
+        """ Checks if the message is liked by the current user.
+            Returns true if so, false if not"""
+        return self in g.user.liked_messages
 
 
 class Like(db.Model):
