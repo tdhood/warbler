@@ -252,13 +252,7 @@ def profile():
     """Update profile for current user."""
 
     user = g.user
-    form = UserEditForm(
-        username=user.username,
-        email=user.email,
-        image_url=user.image_url,
-        header_image_url=user.header_image_url,
-        bio=user.bio,
-    )
+    form = UserEditForm(obj=user)
 
     if form.validate_on_submit():
 
@@ -273,24 +267,10 @@ def profile():
             db.session.commit()
 
             return redirect(f"/users/{user.id}")
-        else:
-            flash("Bad password.")
-            username = form.username.data
-            email = form.email.data
-            image_url = form.image_url.data
-            header_image_url = form.header_image_url.data
-            bio = form.bio.data
-            form = UserEditForm(
-                username=username,
-                email=email,
-                image_url=image_url,
-                header_image_url=header_image_url,
-                bio=bio,
-            )
-            return render_template("users/edit.html", form=form)
+        
+        flash("Bad password.")
 
-    else:
-        return render_template("users/edit.html", form=form)
+    return render_template("users/edit.html", form=form, user_id=user.id)
 
 
 @app.post("/users/delete")
@@ -386,8 +366,7 @@ def homepage():
     if g.user:
         following = [u.id for u in g.user.following]
         curr_user_id = g.user.id
-        print(following)
-        print(curr_user_id)
+    
         messages = (
             Message.query.filter(
                 or_(Message.user_id == g.user.id, Message.user_id.in_(following))
@@ -396,8 +375,6 @@ def homepage():
             .limit(100)
             .all()
         )
-        for message in messages:
-            print(message.user_id)
 
         return render_template("home.html", messages=messages)
 
