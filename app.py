@@ -431,6 +431,15 @@ def remove_like():
 
         return redirect("/")
 
+###############################################################################
+#Error Handling
+
+@app.errorhandler(404)
+def page_not_found(e):
+    """404 NOT FOUND page."""
+
+    return render_template('404.html'), 404
+
 
 ##############################################################################
 # Turn off all caching in Flask
