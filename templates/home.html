@@ -60,13 +60,17 @@
           <form method="POST" action="/like">
             {{ g.csrf_form.hidden_tag() }}
             <input hidden name="message_id" value="{{ msg.id }}">
-            <button class="starButton far fa-star"></button>
+            <div class="star-area">
+              <button class="starButton far fa-star"></button>
+            </div>
           </form>
           {% else %}
           <form method="POST" action="/unlike">
             {{ g.csrf_form.hidden_tag() }}
             <input hidden name="message_id" value="{{ msg.id }}">
-            <button class="starButton fas fa-star"></button>
+            <div class="star-area">
+              <button class="starButton fas fa-star"></button>
+            </div>
           </form>
           {% endif %}
           {% endif %}

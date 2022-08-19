@@ -9,22 +9,35 @@
       <a href="/messages/{{ message.id }}" class="message-link"></a>
 
       <a href="/users/{{ user.id }}">
-        <img src="{{ user.image_url }}"
-             alt="user image"
-             class="timeline-image">
+        <img src="{{ user.image_url }}" alt="user image" class="timeline-image">
       </a>
-
-      <div class="message-area">
-        <a href="/users/{{ user.id }}">@{{ user.username }}</a>
-        <span class="text-muted">
-              {{ message.timestamp.strftime('%d %B %Y') }}
-            </span>
-        <p>{{ message.text }}</p>
+      <div class="warble-area">
+        <div class="message-area">
+          <a href="/users/{{ user.id }}">@{{ user.username }}</a>
+          <span class="text-muted">
+            {{ message.timestamp.strftime('%d %B %Y') }}
+          </span>
+          <p>{{ message.text }}</p>
+        </div>
+        <div class="star-area">
+          <form method="POST" action="/like">
+            {{ g.csrf_form.hidden_tag() }}
+            <input hidden name="message_id" value="{{ message.id }}">
+            <button class="starButton far fa-star"></button>
+          </form>
+          {% else %}
+          <form method="POST" action="/unlike">
+            {{ g.csrf_form.hidden_tag() }}
+            <input hidden name="message_id" value="{{ message.id }}">
+            <button class="starButton fas fa-star"></button>
+        </div>
       </div>
-    </li>
+      </form>
+</div>
+</li>
 
-    {% endfor %}
+{% endfor %}
 
-  </ul>
+</ul>
 </div>
 {% endblock %}

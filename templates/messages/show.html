@@ -19,22 +19,21 @@
             </a>
 
             {% if g.user %}
-              {% if g.user.id == message.user.id %}
-              <form method="POST" action="/messages/{{ message.id }}/delete">
-                <button class="btn btn-outline-danger">Delete</button>
-              </form>
-              {% elif g.user.is_following(message.user) %}
-              <form method="POST" 
-                action="/users/stop-following/{{ message.user.id }}">
-                <button class="btn btn-primary">Unfollow</button>
-              </form>
-              {% else %}
-              <form method="POST" action="/users/follow/{{ message.user.id }}">
-                <button class="btn btn-outline-primary btn-sm">
-                  Follow
-                </button>
-              </form>
-              {% endif %}
+            {% if g.user.id == message.user.id %}
+            <form method="POST" action="/messages/{{ message.id }}/delete">
+              <button class="btn btn-outline-danger">Delete</button>
+            </form>
+            {% elif g.user.is_following(message.user) %}
+            <form method="POST" action="/users/stop-following/{{ message.user.id }}">
+              <button class="btn btn-primary">Unfollow</button>
+            </form>
+            {% else %}
+            <form method="POST" action="/users/follow/{{ message.user.id }}">
+              <button class="btn btn-outline-primary btn-sm">
+                Follow
+              </button>
+            </form>
+            {% endif %}
             {% endif %}
           </div>
           <p class="single-message">{{ message.text }}</p>
@@ -46,20 +45,25 @@
           <form method="POST" action="/like">
             {{ g.csrf_form.hidden_tag() }}
             <input hidden name="message_id" value="{{ message.id }}">
-            <button class="starButton far fa-star"></button>
+            <div class="star-area">
+              <button class="starButton far fa-star"></button>
+            </div>
           </form>
           {% else %}
           <form method="POST" action="/unlike">
             {{ g.csrf_form.hidden_tag() }}
             <input hidden name="message_id" value="{{ message.id }}">
-            <button class="starButton fas fa-star"></button>
-          </form>
-          {% endif %}
-          {% endif %}
+            <div class="star-area">
+              <button class="starButton fas fa-star"></button>
+            </div>
         </div>
-      </li>
-    </ul>
+        </form>
+        {% endif %}
+        {% endif %}
   </div>
+  </li>
+  </ul>
+</div>
 </div>
 
 {% endblock %}
