@@ -256,12 +256,18 @@ nav + .container {
 }
 
 .starButton {
-  position: absolute;
+  position: relative;
   top: 76%;
   right: 11%;
   background-color: rgba(0, 0, 0, 0);
   border: none;
   z-index: 1000;
+}
+
+.star-area {
+  margin-bottom: 5%;
+  margin-left: 90%;
+  
 }
 
 #messages {
