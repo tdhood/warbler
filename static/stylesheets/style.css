@@ -194,6 +194,7 @@ nav + .container {
 
 .message-area {
   margin-left: 10px;
+  width: 100%;
 }
 
 #warbler-hero {
@@ -265,6 +266,7 @@ nav + .container {
 }
 
 .star-area {
+  position:relative;
   margin-bottom: 5%;
   margin-left: 90%;
   
